@@ -23,6 +23,8 @@ Resources:
             RestApiId: !Ref IsQuestionRelevantApi
       Policies:
         - AmazonBedrockFullAccess
+        - DynamoDBCrudPolicy:
+            TableName: "session_table"
         - Statement:
           - Effect: Allow
             Action:

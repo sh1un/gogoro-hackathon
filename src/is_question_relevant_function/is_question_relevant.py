@@ -3,6 +3,7 @@ import os
 import sys
 
 import boto3
+from chat_history import get_chat_history, write_messages_to_table
 from dotenv import load_dotenv
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains.retrieval import create_retrieval_chain
@@ -162,6 +163,7 @@ def lambda_handler(event, context):
     # LangChain prompt template
     prompt = ChatPromptTemplate.from_template(
         """If the context is not relevant, please answer the question by using your own knowledge about the topic. If you don't know the answer, just say that you don't know, don't try to make up an answer. don't include harmful content
+    Chat History: {chat_history}
 
     {context}
 
@@ -178,7 +180,14 @@ def lambda_handler(event, context):
     logger.info(
         f"Invoking the chain with KNN similarity using OpenSearch, Bedrock FM {bedrock_model_id}, and Bedrock embeddings with {bedrock_embedding_model_id}"
     )
-    response = retrieval_chain.invoke({"input": question})
+    chat_history = get_chat_history(table_name="session_table", session_id="0")
+    response = retrieval_chain.invoke(
+        {
+            "input": question,
+            "chat_history": chat_history,
+        }
+    )
+    logger.info(f"In this invoke, the chat history are: {chat_history}")
 
     source_documents = response.get("context")
     for d in source_documents:
@@ -186,5 +195,13 @@ def lambda_handler(event, context):
 
     answer = response.get("answer")
     logger.info(f"The answer from Bedrock {bedrock_model_id} is: {answer}")
+
+    write_messages_to_table(
+        question=question, answer=answer, table_name="session_table", session_id="0"
+    )
+
+    logger.info(
+        f"After this invoke is done, now the history has: {get_chat_history(table_name='session_table', session_id='0')}"
+    )
 
     return {"statusCode": 200, "body": answer}
