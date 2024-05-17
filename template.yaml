@@ -23,6 +23,20 @@ Resources:
             RestApiId: !Ref IsQuestionRelevantApi
       Policies:
         - AmazonBedrockFullAccess
+        - Statement:
+          - Effect: Allow
+            Action:
+              - ssm:GetParameter
+              - ssm:DescribeParameters
+            Resource:
+              - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/OPENSEARCH_ENDPOINT"
+              - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/OPENSEARCH_USERNAME"
+              - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/OPENSEARCH_PASSWORD"
+        - Statement:
+          - Effect: Allow
+            Action:
+              - kms:Decrypt
+            Resource: !Sub arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/aws/ssm
     Metadata:
       Dockerfile: Dockerfile
       DockerContext: src/is_question_relevant_function

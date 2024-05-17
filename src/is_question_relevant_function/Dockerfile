@@ -4,7 +4,7 @@ COPY requirements.txt ./
 
 RUN python3.11 -m pip install -r requirements.txt -t .
 
-COPY is_question_relevant.py ./
+COPY . ./
 
 # Command can be overwritten by providing a different command in the template directly.
 CMD ["is_question_relevant.lambda_handler"]

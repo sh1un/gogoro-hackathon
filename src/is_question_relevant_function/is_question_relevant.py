@@ -1,6 +1,6 @@
+import json
 import os
 import sys
-from typing import Any, Dict, List
 
 import boto3
 from dotenv import load_dotenv
@@ -14,6 +14,11 @@ from langchain_community.vectorstores.opensearch_vector_search import (
 )
 from loguru import logger
 from opensearchpy import OpenSearch
+from secret import (
+    get_opensearch_endpoint,
+    get_opensearch_password,
+    get_opensearch_username,
+)
 
 # logger
 logger.remove()
@@ -28,9 +33,9 @@ AZURE_DEPLOYMENT_NAME = os.environ.get("AZURE_DEPLOYMENT_NAME")
 AZURE_EMBEDDINGS_DEPLOYMENT_NAME = os.environ.get("AZURE_EMBEDDINGS_DEPLOYMENT_NAME")
 
 # OpenSearch
-OPENSEARCH_ENDPOINT = os.environ.get("OPENSEARCH_ENDPOINT")
-OPENSEARCH_USERNAME = os.environ.get("OPENSEARCH_USERNAME")
-OPENSEARCH_PASSWORD = os.environ.get("OPENSEARCH_PASSWORD")
+OPENSEARCH_ENDPOINT = get_opensearch_endpoint()
+OPENSEARCH_USERNAME = get_opensearch_username()
+OPENSEARCH_PASSWORD = get_opensearch_password()
 RAG_THRESHOLD = float(os.environ.get("RAG_THRESHOLD", 0.5))
 
 
@@ -117,8 +122,15 @@ def delete_opensearch_index(opensearch_client, index_name):
 def lambda_handler(event, context):
     logger.info("Starting...")
 
+    # Get API Gateway event body
+    body = event.get("body", "")
+    if body:
+        payload = json.loads(body)
+    else:
+        payload = {}
+
     # Retrieve parameters from the event
-    query = event.get("query", "What is the meaning of <3?")
+    question = payload.get("input", {}).get("question", "What is the meaning of <3?")
     index_name = event.get("index", "shiun")
     region = event.get("region", "us-east-1")
     bedrock_model_id = event.get(
@@ -128,7 +140,7 @@ def lambda_handler(event, context):
         "bedrock_embedding_model_id", "amazon.titan-embed-text-v1"
     )
 
-    logger.info(f"Question provided: {query}")
+    logger.info(f"Question provided: {question}")
 
     # Creating all clients for chain
     bedrock_client = get_bedrock_client(region)
@@ -166,7 +178,7 @@ def lambda_handler(event, context):
     logger.info(
         f"Invoking the chain with KNN similarity using OpenSearch, Bedrock FM {bedrock_model_id}, and Bedrock embeddings with {bedrock_embedding_model_id}"
     )
-    response = retrieval_chain.invoke({"input": query})
+    response = retrieval_chain.invoke({"input": question})
 
     source_documents = response.get("context")
     for d in source_documents:
