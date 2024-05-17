@@ -1,0 +1,34 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: AWS SAM Template for gogoro-hackthon
+
+Resources:
+  IsQuestionRelevantApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: dev
+  IsQuestionRelevantFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/is_question_relevant_function
+      PackageType: Image
+      Architectures:
+        - x86_64
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /is_question_relevant
+            Method: POST
+            RestApiId: !Ref IsQuestionRelevantApi
+      Policies:
+        - AmazonBedrockFullAccess
+    Metadata:
+      Dockerfile: Dockerfile
+      DockerContext: src/is_question_relevant_function
+      DockerTag: python3.11-v1
+
+Outputs:
+  IsQuestionRelevantApi:
+    Description: Is Question Relevant API Endpoint URL
+    Value: !Sub https://${IsQuestionRelevantApi}.execute-api.${AWS::Region}.amazonaws.com/dev/is_question_relevant
