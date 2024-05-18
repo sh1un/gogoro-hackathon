@@ -6,9 +6,11 @@ import boto3
 from chat_history import get_chat_history, write_messages_to_table
 from dotenv import load_dotenv
 from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain.chains.conversation.base import ConversationChain
 from langchain.chains.retrieval import create_retrieval_chain
 from langchain.prompts import ChatPromptTemplate
 from langchain_aws import ChatBedrock
+from langchain_aws.embeddings import BedrockEmbeddings
 from langchain_community.vectorstores.opensearch_vector_search import (
     OpenSearchVectorSearch,
 )
@@ -76,6 +78,15 @@ def get_opensearch_client(cluster_url, username, password):
     return client
 
 
+def create_langchain_vector_embedding_using_bedrock(
+    bedrock_client, bedrock_embedding_model_id
+):
+    bedrock_embeddings_client = BedrockEmbeddings(
+        client=bedrock_client, model_id=bedrock_embedding_model_id
+    )
+    return bedrock_embeddings_client
+
+
 def ensure_index(client, index_name, dimension):
     index_body = {
         "properties": {
@@ -101,6 +112,18 @@ def retrieve_data(client, query_embedding, index_name, top_k=3):
     }
     results = client.search(body=query_body, index=index_name)
     return results["hits"]["hits"]
+
+
+def extract_and_combine_documents(results):
+    combined_document = ""
+    for result in results:
+        fields = result.get("fields", {})
+        document = fields.get("document", [])
+        if document:  # 確保 document 不是空的
+            combined_document += (
+                document[0] + "\n"
+            )  # 將每個 document 內容加到 combined_document 中，並以換行符號分隔
+    return combined_document.strip()  # 移除最後一個多餘的換行符號
 
 
 def lambda_handler(event, context):
@@ -148,17 +171,20 @@ def lambda_handler(event, context):
     Answer:"""
     )
 
-    docs_chain = create_stuff_documents_chain(bedrock_llm, prompt)
-    retrieval_chain = create_retrieval_chain(
-        retriever=OpenSearchVectorSearch(
-            index_name=index_name,
-            embedding_function=cal_embedding,
-            opensearch_url=OPENSEARCH_ENDPOINT,
-            http_auth=(OPENSEARCH_USERNAME, OPENSEARCH_PASSWORD),
-            is_aoss=False,
-        ).as_retriever(),
-        combine_docs_chain=docs_chain,
-    )
+    # docs_chain = create_stuff_documents_chain(bedrock_llm, prompt)
+    # retrieval_chain = create_retrieval_chain(
+    #     retriever=OpenSearchVectorSearch(
+    #         index_name=index_name,
+    #         embedding_function=create_langchain_vector_embedding_using_bedrock(
+    #             bedrock_client=bedrock_client,
+    #             bedrock_embedding_model_id=bedrock_embedding_model_id,
+    #         ),
+    #         opensearch_url=OPENSEARCH_ENDPOINT,
+    #         http_auth=(OPENSEARCH_USERNAME, OPENSEARCH_PASSWORD),
+    #         is_aoss=False,
+    #     ).as_retriever(),
+    #     combine_docs_chain=docs_chain,
+    # )
 
     logger.info(
         f"Invoking the chain with KNN similarity using OpenSearch, Bedrock FM {bedrock_model_id}, and Bedrock embeddings with {bedrock_embedding_model_id}"
@@ -178,9 +204,15 @@ def lambda_handler(event, context):
         answer = "I don't know"
     else:
         # 如果有相關的結果，執行檢索鏈
-        response = retrieval_chain.invoke(
+        # conversation_chain = ConversationChain(
+        #     llm=bedrock_llm,
+        #     prompt=prompt,
+        # )
+        chain = prompt | bedrock_llm
+        response = chain.invoke(
             {
                 "input": question,
+                "context": extract_and_combine_documents(results),
                 "chat_history": chat_history,
             }
         )
