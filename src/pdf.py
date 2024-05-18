@@ -9,7 +9,7 @@ import logging
 
 s3 = boto3.client('s3')
 
-dest_bucket = 'gogoro-hackton-markdown'
+dest_bucket = 'gogoro-hackton-markdown-123'
 img_bucket = 'gogoro-hackton-extracted-image-123'
 
 # Set up logging

@@ -1,33 +1,120 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: AWS SAM Template for gogoro-hackthon
+Description: AWS SAM Template for pdf
 Resources:
   DataSourceBucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName:
         Fn::Sub: gogoro-hackton-data-${AWS::AccountId}-${AWS::Region}
-  DataFunction:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        IgnorePublicAcls: false
+        BlockPublicPolicy: false
+        RestrictPublicBuckets: false
+  DataSourceBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket:
+        Ref: DataSourceBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal: '*'
+          Action: '*'
+          Resource:
+            Fn::Sub: arn:aws:s3:::gogoro-hackton-data-${AWS::AccountId}-${AWS::Region}/jpg/*
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Policies:
+      - PolicyName: LambdaS3AccessPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - s3:GetObject
+            - s3:ListBucket
+            - s3:PutObject
+            - s3:DeleteObject
+            Resource:
+              Fn::Sub: arn:aws:s3:::gogoro-hackton-data-${AWS::AccountId}-${AWS::Region}/*
+          - Effect: Allow
+            Action:
+            - s3:GetObject
+            - s3:ListBucket
+            - s3:PutObject
+            - s3:DeleteObject
+            Resource:
+              Fn::Sub: arn:aws:s3:::gogoro-hackton-extracted-image-123/*
+          - Effect: Allow
+            Action:
+            - s3:GetObject
+            - s3:ListBucket
+            - s3:PutObject
+            - s3:DeleteObject
+            Resource:
+              Fn::Sub: arn:aws:s3:::gogoro-hackton-markdown-123/*
+      - PolicyName: LambdaECRAccessPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - ecr:GetDownloadUrlForLayer
+            - ecr:BatchGetImage
+            - ecr:BatchCheckLayerAvailability
+            Resource: '*'
+          - Effect: Allow
+            Action:
+            - ecr:GetAuthorizationToken
+            Resource: '*'
+      - PolicyName: LambdaLoggingPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource: '*'
+  PDFFunction:
     Type: AWS::Serverless::Function
     Properties:
+      Timeout: 900
+      MemorySize: 10240
       CodeUri: src/
       PackageType: Image
       Architectures:
       - x86_64
+      EphemeralStorage:
+        Size: 10240
       Events:
-        DataSourceBucket:
+        DataSourceBucketEvent:
           Type: S3
           Properties:
             Bucket:
               Ref: DataSourceBucket
             Events: s3:ObjectCreated:*
-      Policies:
-      - S3ReadPolicy:
-          BucketName:
-            Fn::Sub: gogoro-hackton-data-${AWS::AccountId}-${AWS::Region}
-      ImageUri: datafunction:python3.11-v1
+      Role:
+        Fn::GetAtt:
+        - LambdaExecutionRole
+        - Arn
+      ImageUri: pdffunction:python3.11-v1
     Metadata:
-      DockerContext: C:\GitHub\gogoro-hackathon\src
+      DockerContext: /Users/rich/Desktop/gogoro-hackathon/src
       DockerTag: python3.11-v1
       Dockerfile: Dockerfile
-      SamResourceId: DataFunction
+      SamResourceId: PDFFunction

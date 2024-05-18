@@ -1,0 +1,34 @@
+service: mdsplit
+
+provider:
+  name: aws
+  runtime: python3.11
+  region: us-west-2
+  timeout: 900 # Maximum timeout value (in seconds)
+  memorySize: 10240 # Maximum memory size (in MB)
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:GetObject
+        - s3:PutObject
+      Resource: 
+        - arn:aws:s3:::gogoro-hackton-markdown-123/*
+        - arn:aws:s3:::gogoro-hackton-txt-123/*
+
+functions:
+  mdsplit:
+    handler: markdownsplit.lambda_handler
+    events:
+      - s3:
+          existing: true
+          bucket: gogoro-hackton-markdown-123
+          event: s3:ObjectCreated:*
+          rules:
+            - suffix: '.md'
+
+# plugins:
+#   - serverless-python-requirements
+
+# custom:
+#   pythonRequirements:
+#     dockerizePip: true

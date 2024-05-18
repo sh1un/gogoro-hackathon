@@ -4,7 +4,7 @@ version = 0.1
 
 [default]
 [default.global.parameters]
-stack_name = "pdfpreprocessing"
+stack_name = "pdf-to-md"
 
 [default.build.parameters]
 cached = true
@@ -15,11 +15,13 @@ lint = true
 
 [default.deploy.parameters]
 capabilities = "CAPABILITY_IAM"
-confirm_changeset = true
+confirm_changeset = false
 resolve_s3 = true
-s3_prefix = "pdfpreprocessing"
-region = "us-east-1"
-image_repositories = ["DataFunction=232958563315.dkr.ecr.us-east-1.amazonaws.com/pdfpreprocessing6674d6f2/datafunction45a4c58erepo"]
+s3_prefix = "pdf-to-md"
+region = "us-west-2"
+disable_rollback = true
+image_repositories = ["PDFFunction=986575121323.dkr.ecr.us-west-2.amazonaws.com/pdftomd1acb26c2/pdffunction9d2fd77arepo"]
+
 
 [default.package.parameters]
 resolve_s3 = true
