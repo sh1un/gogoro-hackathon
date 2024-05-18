@@ -23,7 +23,6 @@ def get_opensearch_password():
 
 def get_langchain_api_key():
     parameter = ssm.get_parameter(Name="LANGCHAIN_API_KEY", WithDecryption=True)
-    set_environment_variable("LANGCHAIN_API_KEY", parameter["Parameter"]["Value"])
     return parameter["Parameter"]["Value"]
 
 
