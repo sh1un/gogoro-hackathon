@@ -9,7 +9,6 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains.retrieval import create_retrieval_chain
 from langchain.prompts import ChatPromptTemplate
 from langchain_aws import ChatBedrock
-from langchain_aws.embeddings import BedrockEmbeddings
 from langchain_community.vectorstores.opensearch_vector_search import (
     OpenSearchVectorSearch,
 )
@@ -38,6 +37,7 @@ OPENSEARCH_ENDPOINT = get_opensearch_endpoint()
 OPENSEARCH_USERNAME = get_opensearch_username()
 OPENSEARCH_PASSWORD = get_opensearch_password()
 RAG_THRESHOLD = float(os.environ.get("RAG_THRESHOLD", 0.5))
+EMBEDDING_DIMENSION = 1536
 
 
 def get_model(model: str = "claude 3 sonnet") -> ChatBedrock:
@@ -56,13 +56,17 @@ def get_bedrock_client(region):
     return bedrock_client
 
 
-def create_langchain_vector_embedding_using_bedrock(
-    bedrock_client, bedrock_embedding_model_id
-):
-    bedrock_embeddings_client = BedrockEmbeddings(
-        client=bedrock_client, model_id=bedrock_embedding_model_id
+def cal_embedding(bedrock_client, text: str) -> list:
+    body = json.dumps({"inputText": text})
+    modelId = "amazon.titan-embed-text-v1"
+    accept = "*/*"
+    contentType = "application/json"
+
+    response = bedrock_client.invoke_model(
+        body=body, modelId=modelId, accept=accept, contentType=contentType
     )
-    return bedrock_embeddings_client
+    response_body = json.loads(response.get("body").read())
+    return response_body["embedding"]
 
 
 def get_opensearch_client(cluster_url, username, password):
@@ -72,22 +76,31 @@ def get_opensearch_client(cluster_url, username, password):
     return client
 
 
-def create_opensearch_vector_search_client(
-    index_name,
-    bedrock_embeddings_client,
-    opensearch_endpoint=OPENSEARCH_ENDPOINT,
-    opensearch_username=OPENSEARCH_USERNAME,
-    opensearch_password=OPENSEARCH_PASSWORD,
-    _is_aoss=False,
-):
-    docsearch = OpenSearchVectorSearch(
-        index_name=index_name,
-        embedding_function=bedrock_embeddings_client,
-        opensearch_url=opensearch_endpoint,
-        http_auth=(opensearch_username, opensearch_password),
-        is_aoss=_is_aoss,
-    )
-    return docsearch
+def ensure_index(client, index_name, dimension):
+    index_body = {
+        "properties": {
+            "embedding": {"type": "knn_vector", "dimension": dimension},
+            "id": {"type": "integer"},
+            "title": {"type": "text"},
+        }
+    }
+    if not client.indices.exists(index=index_name):
+        client.indices.create(index=index_name, body={"mappings": index_body})
+    else:
+        # 更新映射設置
+        client.indices.put_mapping(index=index_name, body=index_body)
+
+
+def retrieve_data(client, query_embedding, index_name, top_k=3):
+    query_body = {
+        "query": {
+            "knn": {"document_embedding": {"vector": query_embedding, "k": top_k}}
+        },
+        "_source": False,
+        "fields": ["chapter", "document"],
+    }
+    results = client.search(body=query_body, index=index_name)
+    return results["hits"]["hits"]
 
 
 def lambda_handler(event, context):
@@ -117,19 +130,12 @@ def lambda_handler(event, context):
     # Creating all clients for chain
     bedrock_client = get_bedrock_client(region)
     bedrock_llm = get_model()
-    bedrock_embeddings_client = create_langchain_vector_embedding_using_bedrock(
-        bedrock_client, bedrock_embedding_model_id
-    )
     opensearch_client = get_opensearch_client(
         OPENSEARCH_ENDPOINT, OPENSEARCH_USERNAME, OPENSEARCH_PASSWORD
     )
-    opensearch_vector_search_client = create_opensearch_vector_search_client(
-        index_name,
-        bedrock_embeddings_client,
-        OPENSEARCH_ENDPOINT,
-        OPENSEARCH_USERNAME,
-        OPENSEARCH_PASSWORD,
-    )
+
+    # 確保索引存在並正確配置
+    ensure_index(opensearch_client, index_name, EMBEDDING_DIMENSION)
 
     # LangChain prompt template
     prompt = ChatPromptTemplate.from_template(
@@ -144,7 +150,13 @@ def lambda_handler(event, context):
 
     docs_chain = create_stuff_documents_chain(bedrock_llm, prompt)
     retrieval_chain = create_retrieval_chain(
-        retriever=opensearch_vector_search_client.as_retriever(),
+        retriever=OpenSearchVectorSearch(
+            index_name=index_name,
+            embedding_function=cal_embedding,
+            opensearch_url=OPENSEARCH_ENDPOINT,
+            http_auth=(OPENSEARCH_USERNAME, OPENSEARCH_PASSWORD),
+            is_aoss=False,
+        ).as_retriever(),
         combine_docs_chain=docs_chain,
     )
 
@@ -152,19 +164,28 @@ def lambda_handler(event, context):
         f"Invoking the chain with KNN similarity using OpenSearch, Bedrock FM {bedrock_model_id}, and Bedrock embeddings with {bedrock_embedding_model_id}"
     )
     chat_history = get_chat_history(table_name="session_table", session_id=session_id)
-    response = retrieval_chain.invoke(
-        {
-            "input": question,
-            "chat_history": chat_history,
-        }
-    )
-    logger.info(f"In this invoke, the chat history are: {chat_history}")
 
-    source_documents = response.get("context")
-    for d in source_documents:
-        logger.info(f"Text: {d.page_content}")
+    # 計算查詢的嵌入向量
+    query_embedding = cal_embedding(bedrock_client, question)
+    logger.info(f"Query embedding: {query_embedding}")
 
-    answer = response.get("answer")
+    # 從 OpenSearch 檢索數據
+    results = retrieve_data(opensearch_client, query_embedding, index_name, top_k=3)
+    logger.info(f"Results from OpenSearch: {results}")
+    relevant_docs = [hit for hit in results if hit["_score"] >= RAG_THRESHOLD]
+
+    if not relevant_docs:
+        answer = "I don't know"
+    else:
+        # 如果有相關的結果，執行檢索鏈
+        response = retrieval_chain.invoke(
+            {
+                "input": question,
+                "chat_history": chat_history,
+            }
+        )
+        answer = response.get("answer", "I don't know")
+
     logger.info(f"The answer from Bedrock {bedrock_model_id} is: {answer}")
 
     write_messages_to_table(
