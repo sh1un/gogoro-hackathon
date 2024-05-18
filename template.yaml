@@ -12,6 +12,7 @@ Resources:
     Properties:
       CodeUri: src/is_question_relevant_function
       PackageType: Image
+      Timeout: 90
       Architectures:
         - x86_64
       Events:
@@ -34,6 +35,7 @@ Resources:
               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/OPENSEARCH_ENDPOINT"
               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/OPENSEARCH_USERNAME"
               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/OPENSEARCH_PASSWORD"
+              - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/LANGCHAIN_API_KEY"
         - Statement:
           - Effect: Allow
             Action:
