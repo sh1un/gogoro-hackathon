@@ -132,7 +132,8 @@ def lambda_handler(event, context):
 
     # Retrieve parameters from the event
     question = payload.get("input", {}).get("question", "What is the meaning of <3?")
-    index_name = event.get("index", "shiun")
+    index_name = payload.get("input", {}).get("index", "shiun")
+    session_id = payload.get("input", {}).get("session_id", "0")
     region = event.get("region", "us-east-1")
     bedrock_model_id = event.get(
         "bedrock_model_id", "anthropic.claude-3-sonnet-20240229-v1:0"
@@ -180,7 +181,7 @@ def lambda_handler(event, context):
     logger.info(
         f"Invoking the chain with KNN similarity using OpenSearch, Bedrock FM {bedrock_model_id}, and Bedrock embeddings with {bedrock_embedding_model_id}"
     )
-    chat_history = get_chat_history(table_name="session_table", session_id="0")
+    chat_history = get_chat_history(table_name="session_table", session_id=session_id)
     response = retrieval_chain.invoke(
         {
             "input": question,
@@ -197,7 +198,10 @@ def lambda_handler(event, context):
     logger.info(f"The answer from Bedrock {bedrock_model_id} is: {answer}")
 
     write_messages_to_table(
-        question=question, answer=answer, table_name="session_table", session_id="0"
+        question=question,
+        answer=answer,
+        table_name="session_table",
+        session_id=session_id,
     )
 
     logger.info(
