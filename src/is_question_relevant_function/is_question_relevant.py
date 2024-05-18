@@ -14,6 +14,9 @@ from langchain_aws.embeddings import BedrockEmbeddings
 from langchain_community.vectorstores.opensearch_vector_search import (
     OpenSearchVectorSearch,
 )
+from langchain_core.messages import SystemMessage
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import MessagesPlaceholder
 from loguru import logger
 from opensearchpy import OpenSearch
 from secret import (
@@ -25,6 +28,7 @@ from secret import (
 # logger
 logger.remove()
 logger.add(sys.stdout, level=os.getenv("LOG_LEVEL", "INFO"))
+
 
 # Load environment variables from a .env file if present
 load_dotenv()
@@ -115,15 +119,15 @@ def retrieve_data(client, query_embedding, index_name, top_k=3):
 
 
 def extract_and_combine_documents(results):
-    combined_document = ""
+    combined_content = ""
     for result in results:
         fields = result.get("fields", {})
-        document = fields.get("document", [])
-        if document:  # 確保 document 不是空的
-            combined_document += (
-                document[0] + "\n"
-            )  # 將每個 document 內容加到 combined_document 中，並以換行符號分隔
-    return combined_document.strip()  # 移除最後一個多餘的換行符號
+        document = fields.get("document", [""])[0]
+        if document:
+            combined_content += document + "\n\n"
+
+    system_message = SystemMessage(content=combined_content.strip())
+    return [system_message]
 
 
 def lambda_handler(event, context):
@@ -171,6 +175,22 @@ def lambda_handler(event, context):
     Answer:"""
     )
 
+    # prompt = ChatPromptTemplate.from_messages(
+    #     [
+    #         (
+    #             "system",
+    #             "If the context is not relevant, please answer the question by using your own knowledge about the topic. If you don't know the answer, just say that you don't know, don't try to make up an answer. don't include harmful content",
+    #         ),
+    #         MessagesPlaceholder(variable_name="context"),
+    #         MessagesPlaceholder(variable_name="chat_history"),
+    #         ("human", "{question}"),
+    #         (
+    #             "system",
+    #             "Answer:",
+    #         ),
+    #     ]
+    # )
+
     # docs_chain = create_stuff_documents_chain(bedrock_llm, prompt)
     # retrieval_chain = create_retrieval_chain(
     #     retriever=OpenSearchVectorSearch(
@@ -203,20 +223,15 @@ def lambda_handler(event, context):
     if not relevant_docs:
         answer = "I don't know"
     else:
-        # 如果有相關的結果，執行檢索鏈
-        # conversation_chain = ConversationChain(
-        #     llm=bedrock_llm,
-        #     prompt=prompt,
-        # )
-        chain = prompt | bedrock_llm
-        response = chain.invoke(
+        chain = prompt | bedrock_llm | StrOutputParser()
+        answer = chain.invoke(
             {
-                "input": question,
-                "context": extract_and_combine_documents(results),
                 "chat_history": chat_history,
+                "context": extract_and_combine_documents(results),
+                "input": question,
             }
         )
-        answer = response.get("answer", "I don't know")
+        logger.info(f"Context: {extract_and_combine_documents(results)}")
 
     logger.info(f"The answer from Bedrock {bedrock_model_id} is: {answer}")
 
