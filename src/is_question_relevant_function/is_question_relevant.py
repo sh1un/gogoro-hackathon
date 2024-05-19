@@ -11,12 +11,8 @@ from langchain.chains.retrieval import create_retrieval_chain
 from langchain.prompts import ChatPromptTemplate
 from langchain_aws import ChatBedrock
 from langchain_aws.embeddings import BedrockEmbeddings
-from langchain_community.vectorstores.opensearch_vector_search import (
-    OpenSearchVectorSearch,
-)
 from langchain_core.messages import SystemMessage
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import MessagesPlaceholder
 from loguru import logger
 from opensearchpy import OpenSearch
 from secret import (
@@ -42,7 +38,7 @@ AZURE_EMBEDDINGS_DEPLOYMENT_NAME = os.environ.get("AZURE_EMBEDDINGS_DEPLOYMENT_N
 OPENSEARCH_ENDPOINT = get_opensearch_endpoint()
 OPENSEARCH_USERNAME = get_opensearch_username()
 OPENSEARCH_PASSWORD = get_opensearch_password()
-RAG_THRESHOLD = float(os.environ.get("RAG_THRESHOLD", 0.5))
+RAG_THRESHOLD = float(os.environ.get("RAG_THRESHOLD", 0.58))
 EMBEDDING_DIMENSION = 1536
 
 
@@ -102,7 +98,7 @@ def ensure_index(client, index_name, dimension):
     if not client.indices.exists(index=index_name):
         client.indices.create(index=index_name, body={"mappings": index_body})
     else:
-        # 更新映射設置
+        # Update the mapping
         client.indices.put_mapping(index=index_name, body=index_body)
 
 
@@ -161,7 +157,7 @@ def lambda_handler(event, context):
         OPENSEARCH_ENDPOINT, OPENSEARCH_USERNAME, OPENSEARCH_PASSWORD
     )
 
-    # 確保索引存在並正確配置
+    # Ensure index
     ensure_index(opensearch_client, index_name, EMBEDDING_DIMENSION)
 
     # LangChain prompt template
@@ -175,47 +171,16 @@ def lambda_handler(event, context):
     Answer:"""
     )
 
-    # prompt = ChatPromptTemplate.from_messages(
-    #     [
-    #         (
-    #             "system",
-    #             "If the context is not relevant, please answer the question by using your own knowledge about the topic. If you don't know the answer, just say that you don't know, don't try to make up an answer. don't include harmful content",
-    #         ),
-    #         MessagesPlaceholder(variable_name="context"),
-    #         MessagesPlaceholder(variable_name="chat_history"),
-    #         ("human", "{question}"),
-    #         (
-    #             "system",
-    #             "Answer:",
-    #         ),
-    #     ]
-    # )
-
-    # docs_chain = create_stuff_documents_chain(bedrock_llm, prompt)
-    # retrieval_chain = create_retrieval_chain(
-    #     retriever=OpenSearchVectorSearch(
-    #         index_name=index_name,
-    #         embedding_function=create_langchain_vector_embedding_using_bedrock(
-    #             bedrock_client=bedrock_client,
-    #             bedrock_embedding_model_id=bedrock_embedding_model_id,
-    #         ),
-    #         opensearch_url=OPENSEARCH_ENDPOINT,
-    #         http_auth=(OPENSEARCH_USERNAME, OPENSEARCH_PASSWORD),
-    #         is_aoss=False,
-    #     ).as_retriever(),
-    #     combine_docs_chain=docs_chain,
-    # )
-
     logger.info(
         f"Invoking the chain with KNN similarity using OpenSearch, Bedrock FM {bedrock_model_id}, and Bedrock embeddings with {bedrock_embedding_model_id}"
     )
     chat_history = get_chat_history(table_name="session_table", session_id=session_id)
 
-    # 計算查詢的嵌入向量
+    # Calculate the query embedding
     query_embedding = cal_embedding(bedrock_client, question)
     logger.info(f"Query embedding: {query_embedding}")
 
-    # 從 OpenSearch 檢索數據
+    # Retrieve data from OpenSearch
     results = retrieve_data(opensearch_client, query_embedding, index_name, top_k=3)
     logger.info(f"Results from OpenSearch: {results}")
     relevant_docs = [hit for hit in results if hit["_score"] >= RAG_THRESHOLD]
