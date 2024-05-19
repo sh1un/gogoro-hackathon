@@ -163,7 +163,7 @@ def lambda_handler(event, context):
         """Let me break down my thought process step-by-step when answering your questions about Gogoro's products and services:
 
 Step 1: Analyze the question and identify any missing key information.
-Chat History: {chat_history}
+Chat History: {chat_history}  
 Question: {input}
 [analyze question and chat history]
 
@@ -174,8 +174,11 @@ Step 2: Check if the provided context contains enough information to answer, com
 Step 3: If needed, politely request any additional information required to comprehensively answer.
 [request additional info]
 
-Step 4: Provide a step-by-step answer utilizing all available information.
-[answer steps]
+Step 4: If relevant images are needed, output them using markdown:
+[output relevant images in markdown]
+
+Step 5: Provide a step-by-step answer in the same language as the question, utilizing all available information. 
+[answer steps in same language as question]
 
 Final Answer: [result]
 
