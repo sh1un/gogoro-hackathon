@@ -36,7 +36,7 @@ AZURE_EMBEDDINGS_DEPLOYMENT_NAME = os.environ.get("AZURE_EMBEDDINGS_DEPLOYMENT_N
 OPENSEARCH_ENDPOINT = get_opensearch_endpoint()
 OPENSEARCH_USERNAME = get_opensearch_username()
 OPENSEARCH_PASSWORD = get_opensearch_password()
-RAG_THRESHOLD = float(os.environ.get("RAG_THRESHOLD", 0.58))
+RAG_THRESHOLD = float(os.environ.get("RAG_THRESHOLD", 0.6))
 EMBEDDING_DIMENSION = 1536
 
 
@@ -174,7 +174,7 @@ Step 2: Check if the provided context contains enough information to answer, com
 Step 3: If needed, politely request any additional information required to comprehensively answer.
 [request additional info]
 
-Step 4: For input questions, please add an image in markdown format if possible.
+Step 4: For input questions, a picture in Markdown format must be output.
 [output relevant images in markdown]
 
 Step 5: Provide a step-by-step answer in the same language as the question, utilizing all available information. 
