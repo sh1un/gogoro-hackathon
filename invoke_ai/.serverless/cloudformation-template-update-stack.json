@@ -183,7 +183,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/image-description/dev/1716089413289-2024-05-19T03:30:13.289Z/image-description.zip"
+          "S3Key": "serverless/image-description/dev/1716093184826-2024-05-19T04:33:04.826Z/image-description.zip"
         },
         "Handler": "invoke_claude3.lambda_handler",
         "Runtime": "python3.11",
@@ -201,14 +201,14 @@
         "InvokeUnderscoreaiLogGroup"
       ]
     },
-    "InvokeUnderscoreaiLambdaVersionF0MjEqIIOFyoywSsVMsrLWV4UqegD3eqf92H5F5jVY": {
+    "InvokeUnderscoreaiLambdaVersionouHGT7XGZdXGHL3NZ7xVeCkNqeZchy2uQQ7rHfeHFkA": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "InvokeUnderscoreaiLambdaFunction"
         },
-        "CodeSha256": "7cE80qiorkrzB3mD1/3NbchGkDxQPRQEZx6AXDUS4Ho="
+        "CodeSha256": "f+blN3mteBuZ2Av2N47Dqt9v1YwRQCfDS8+kALKdN/E="
       }
     },
     "InvokeUnderscoreaiCustomS31": {
@@ -335,7 +335,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/image-description/dev/1716089413289-2024-05-19T03:30:13.289Z/custom-resources.zip"
+          "S3Key": "serverless/image-description/dev/1716093184826-2024-05-19T04:33:04.826Z/custom-resources.zip"
         },
         "FunctionName": "image-description-dev-custom-resource-existing-s3",
         "Handler": "s3/handler.handler",
@@ -366,7 +366,7 @@
     "InvokeUnderscoreaiLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "InvokeUnderscoreaiLambdaVersionF0MjEqIIOFyoywSsVMsrLWV4UqegD3eqf92H5F5jVY"
+        "Ref": "InvokeUnderscoreaiLambdaVersionouHGT7XGZdXGHL3NZ7xVeCkNqeZchy2uQQ7rHfeHFkA"
       },
       "Export": {
         "Name": "sls-image-description-dev-InvokeUnderscoreaiLambdaFunctionQualifiedArn"

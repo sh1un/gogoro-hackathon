@@ -2,11 +2,11 @@ import json
 import boto3
 import base64
 import re
-
+import time
 # Configuration
 SERVICE_NAME = "bedrock-runtime"
 REGION_NAME = "us-west-2"
-MODEL_ID = "anthropic.claude-3-sonnet-20240229-v1:0"
+MODEL_ID = "anthropic.claude-3-opus-20240229-v1:0"
 
 s3_client = boto3.client('s3')
 
@@ -29,6 +29,7 @@ def invoke_claude_3_multimodal(prompt: str, base64_image_data: str) -> str:
         ],
     }
     try:
+        
         response = client.invoke_model(
             modelId=MODEL_ID,
             body=json.dumps(request_body),

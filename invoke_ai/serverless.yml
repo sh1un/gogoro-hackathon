@@ -23,7 +23,8 @@ functions:
   invoke_ai:
     handler: invoke_claude3.lambda_handler
     memorySize: 10240 # 10 GB
-    timeout: 900 # 15 minutes
+    timeout: 900
+     # 15 minutes
     events:
       - s3:
           bucket: gogoro-hackton-markdown-123
