@@ -1,0 +1,95 @@
+{
+  "version": "36.0.0",
+  "artifacts": {
+    "GradioLambda.assets": {
+      "type": "cdk:asset-manifest",
+      "properties": {
+        "file": "GradioLambda.assets.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+      }
+    },
+    "GradioLambda": {
+      "type": "aws:cloudformation:stack",
+      "environment": "aws://986575121323/us-west-2",
+      "properties": {
+        "templateFile": "GradioLambda.template.json",
+        "terminationProtection": false,
+        "validateOnSynth": false,
+        "assumeRoleArn": "arn:${AWS::Partition}:iam::986575121323:role/cdk-hnb659fds-deploy-role-986575121323-us-west-2",
+        "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::986575121323:role/cdk-hnb659fds-cfn-exec-role-986575121323-us-west-2",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-986575121323-us-west-2/5ff948739dc6183042d249540a9cb6cd6964b7a0c8bae5f42bca4d53e930bba0.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
+        "additionalDependencies": [
+          "GradioLambda.assets"
+        ],
+        "lookupRole": {
+          "arn": "arn:${AWS::Partition}:iam::986575121323:role/cdk-hnb659fds-lookup-role-986575121323-us-west-2",
+          "requiresBootstrapStackVersion": 8,
+          "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+        }
+      },
+      "dependencies": [
+        "GradioLambda.assets"
+      ],
+      "metadata": {
+        "/GradioLambda/GogoroGradioApp/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GogoroGradioAppServiceRoleCB430915"
+          }
+        ],
+        "/GradioLambda/GogoroGradioApp/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GogoroGradioApp998DCC07"
+          }
+        ],
+        "/GradioLambda/GogoroGradioApp/FunctionUrl/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GogoroGradioAppFunctionUrl7D15F895"
+          }
+        ],
+        "/GradioLambda/GogoroGradioApp/invoke-function-url": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GogoroGradioAppinvokefunctionurlC18F2E90"
+          }
+        ],
+        "/GradioLambda/functionUrl": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "functionUrl"
+          }
+        ],
+        "/GradioLambda/CDKMetadata/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CDKMetadata"
+          }
+        ],
+        "/GradioLambda/BootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BootstrapVersion"
+          }
+        ],
+        "/GradioLambda/CheckBootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CheckBootstrapVersion"
+          }
+        ]
+      },
+      "displayName": "GradioLambda"
+    },
+    "Tree": {
+      "type": "cdk:tree",
+      "properties": {
+        "file": "tree.json"
+      }
+    }
+  }
+}

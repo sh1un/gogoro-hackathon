@@ -1,0 +1,154 @@
+{
+ "Resources": {
+  "GogoroGradioAppServiceRoleCB430915": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "GradioLambda/GogoroGradioApp/ServiceRole/Resource"
+   }
+  },
+  "GogoroGradioApp998DCC07": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Architectures": [
+     "x86_64"
+    ],
+    "Code": {
+     "ImageUri": {
+      "Fn::Sub": "986575121323.dkr.ecr.us-west-2.${AWS::URLSuffix}/cdk-hnb659fds-container-assets-986575121323-us-west-2:dde7bee7beb42b69135520ac2b3ca2c72cf9fd7b9ba5ef0dd45ef866f6b581a6"
+     }
+    },
+    "MemorySize": 8192,
+    "PackageType": "Image",
+    "Role": {
+     "Fn::GetAtt": [
+      "GogoroGradioAppServiceRoleCB430915",
+      "Arn"
+     ]
+    },
+    "Timeout": 120
+   },
+   "DependsOn": [
+    "GogoroGradioAppServiceRoleCB430915"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "GradioLambda/GogoroGradioApp/Resource",
+    "aws:asset:path": "asset.dde7bee7beb42b69135520ac2b3ca2c72cf9fd7b9ba5ef0dd45ef866f6b581a6",
+    "aws:asset:dockerfile-path": "Dockerfile",
+    "aws:asset:property": "Code.ImageUri"
+   }
+  },
+  "GogoroGradioAppFunctionUrl7D15F895": {
+   "Type": "AWS::Lambda::Url",
+   "Properties": {
+    "AuthType": "NONE",
+    "TargetFunctionArn": {
+     "Fn::GetAtt": [
+      "GogoroGradioApp998DCC07",
+      "Arn"
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "GradioLambda/GogoroGradioApp/FunctionUrl/Resource"
+   }
+  },
+  "GogoroGradioAppinvokefunctionurlC18F2E90": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunctionUrl",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "GogoroGradioApp998DCC07",
+      "Arn"
+     ]
+    },
+    "FunctionUrlAuthType": "NONE",
+    "Principal": "*"
+   },
+   "Metadata": {
+    "aws:cdk:path": "GradioLambda/GogoroGradioApp/invoke-function-url"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/02MywrCMBBFv8V9OlJ14dYHgiul4lrGONaxTSKZCSKl/y7xhatzufdyRlBORlAO8C6FPTVFy0fodoq2MXiXQ9eiO54QumWwDcW1w5pWyVvl4M3i7H/5G/axzf0HW4qORTj43jA66KrQUh4ye0M2HlCEVODPP8tN3qCiWxDWEB9zFOpNRRJStGRel51izb7Ouk3SW9KX+HPpzfahl+CHYyhLmA6uwlzE5JUdQfXmE46ab8v8AAAA"
+   },
+   "Metadata": {
+    "aws:cdk:path": "GradioLambda/CDKMetadata/Default"
+   }
+  }
+ },
+ "Outputs": {
+  "functionUrl": {
+   "Value": {
+    "Fn::GetAtt": [
+     "GogoroGradioAppFunctionUrl7D15F895",
+     "FunctionUrl"
+    ]
+   }
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}

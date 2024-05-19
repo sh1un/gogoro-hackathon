@@ -1,0 +1,36 @@
+{
+  "version": "36.0.0",
+  "files": {
+    "5ff948739dc6183042d249540a9cb6cd6964b7a0c8bae5f42bca4d53e930bba0": {
+      "source": {
+        "path": "GradioLambda.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "986575121323-us-west-2": {
+          "bucketName": "cdk-hnb659fds-assets-986575121323-us-west-2",
+          "objectKey": "5ff948739dc6183042d249540a9cb6cd6964b7a0c8bae5f42bca4d53e930bba0.json",
+          "region": "us-west-2",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::986575121323:role/cdk-hnb659fds-file-publishing-role-986575121323-us-west-2"
+        }
+      }
+    }
+  },
+  "dockerImages": {
+    "dde7bee7beb42b69135520ac2b3ca2c72cf9fd7b9ba5ef0dd45ef866f6b581a6": {
+      "source": {
+        "directory": "asset.dde7bee7beb42b69135520ac2b3ca2c72cf9fd7b9ba5ef0dd45ef866f6b581a6",
+        "dockerFile": "Dockerfile",
+        "platform": "linux/amd64"
+      },
+      "destinations": {
+        "986575121323-us-west-2": {
+          "repositoryName": "cdk-hnb659fds-container-assets-986575121323-us-west-2",
+          "imageTag": "dde7bee7beb42b69135520ac2b3ca2c72cf9fd7b9ba5ef0dd45ef866f6b581a6",
+          "region": "us-west-2",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::986575121323:role/cdk-hnb659fds-image-publishing-role-986575121323-us-west-2"
+        }
+      }
+    }
+  }
+}
