@@ -9,8 +9,8 @@ logger = logging.getLogger()
 
 s3 = boto3.client('s3')
 
-source_bucket = 'gogoro-hackton-markdown-123'
-dest_bucket = 'gogoro-hackton-txt-123'
+source_bucket = 'gogoro-hackton-replace-image'
+dest_bucket = "gogoro-hackton-txt-123"
 
 def lambda_handler(event, context):
     logger.info("Event: %s", event)
@@ -35,7 +35,7 @@ def lambda_handler(event, context):
                 lines = file.readlines()
             
             split_file_num = 1
-            split_title = f"{split_file_num}_0. {file_key[:-3]}"
+            split_title = f"{split_file_num}_0_{file_key[:-3]}"
             split_content = ""
             have_content = False
             

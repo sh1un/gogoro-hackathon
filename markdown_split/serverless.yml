@@ -12,7 +12,8 @@ provider:
         - s3:GetObject
         - s3:PutObject
       Resource: 
-        - arn:aws:s3:::gogoro-hackton-markdown-123/*
+        - arn:aws:s3:::gogoro-hackton-replace-image/*
+        # - arn:aws:s3:::gogoro-hackton-extracted-image-123/*
         - arn:aws:s3:::gogoro-hackton-txt-123/*
 
 functions:
@@ -21,14 +22,8 @@ functions:
     events:
       - s3:
           existing: true
-          bucket: gogoro-hackton-markdown-123
+          bucket: gogoro-hackton-replace-image
           event: s3:ObjectCreated:*
           rules:
             - suffix: '.md'
 
-# plugins:
-#   - serverless-python-requirements
-
-# custom:
-#   pythonRequirements:
-#     dockerizePip: true

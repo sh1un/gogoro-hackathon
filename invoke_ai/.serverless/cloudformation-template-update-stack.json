@@ -71,10 +71,10 @@
         }
       }
     },
-    "MdsplitLogGroup": {
+    "InvokeUnderscoreaiLogGroup": {
       "Type": "AWS::Logs::LogGroup",
       "Properties": {
-        "LogGroupName": "/aws/lambda/mdsplit-dev-mdsplit"
+        "LogGroupName": "/aws/lambda/image-description-dev-invoke_ai"
       }
     },
     "IamRoleLambdaExecution": {
@@ -102,7 +102,7 @@
               "Fn::Join": [
                 "-",
                 [
-                  "mdsplit",
+                  "image-description",
                   "dev",
                   "lambda"
                 ]
@@ -120,7 +120,7 @@
                   ],
                   "Resource": [
                     {
-                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/mdsplit-dev*:*"
+                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/image-description-dev*:*"
                     }
                   ]
                 },
@@ -131,7 +131,7 @@
                   ],
                   "Resource": [
                     {
-                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/mdsplit-dev*:*:*"
+                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/image-description-dev*:*:*"
                     }
                   ]
                 },
@@ -139,12 +139,22 @@
                   "Effect": "Allow",
                   "Action": [
                     "s3:GetObject",
-                    "s3:PutObject"
+                    "s3:PutObject",
+                    "s3:ListBucket"
                   ],
                   "Resource": [
+                    "arn:aws:s3:::gogoro-hackton-markdown-123/*",
                     "arn:aws:s3:::gogoro-hackton-replace-image/*",
-                    "arn:aws:s3:::gogoro-hackton-txt-123/*"
+                    "arn:aws:s3:::gogoro-hackton-extracted-image-123/*"
                   ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "bedrock:InvokeModel",
+                    "bedrock:ListFoundationModels"
+                  ],
+                  "Resource": "*"
                 }
               ]
             }
@@ -155,7 +165,7 @@
           "Fn::Join": [
             "-",
             [
-              "mdsplit",
+              "image-description",
               "dev",
               {
                 "Ref": "AWS::Region"
@@ -166,18 +176,18 @@
         }
       }
     },
-    "MdsplitLambdaFunction": {
+    "InvokeUnderscoreaiLambdaFunction": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Code": {
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/mdsplit/dev/1716083476400-2024-05-19T01:51:16.400Z/mdsplit.zip"
+          "S3Key": "serverless/image-description/dev/1716089413289-2024-05-19T03:30:13.289Z/image-description.zip"
         },
-        "Handler": "markdownsplit.lambda_handler",
+        "Handler": "invoke_claude3.lambda_handler",
         "Runtime": "python3.11",
-        "FunctionName": "mdsplit-dev-mdsplit",
+        "FunctionName": "image-description-dev-invoke_ai",
         "MemorySize": 10240,
         "Timeout": 900,
         "Role": {
@@ -188,24 +198,24 @@
         }
       },
       "DependsOn": [
-        "MdsplitLogGroup"
+        "InvokeUnderscoreaiLogGroup"
       ]
     },
-    "MdsplitLambdaVersionwsoYyl00PdRPrGYGUqB9IUQusVxuKd05jsnDB89huCA": {
+    "InvokeUnderscoreaiLambdaVersionF0MjEqIIOFyoywSsVMsrLWV4UqegD3eqf92H5F5jVY": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
-          "Ref": "MdsplitLambdaFunction"
+          "Ref": "InvokeUnderscoreaiLambdaFunction"
         },
-        "CodeSha256": "zVvnsAjT8JMg+LKK+zUYWbpW+r6BWe2vx6LOteSppVQ="
+        "CodeSha256": "7cE80qiorkrzB3mD1/3NbchGkDxQPRQEZx6AXDUS4Ho="
       }
     },
-    "MdsplitCustomS31": {
+    "InvokeUnderscoreaiCustomS31": {
       "Type": "Custom::S3",
       "Version": 1,
       "DependsOn": [
-        "MdsplitLambdaFunction",
+        "InvokeUnderscoreaiLambdaFunction",
         "CustomDashresourceDashexistingDashs3LambdaFunction"
       ],
       "Properties": {
@@ -215,8 +225,8 @@
             "Arn"
           ]
         },
-        "FunctionName": "mdsplit-dev-mdsplit",
-        "BucketName": "gogoro-hackton-replace-image",
+        "FunctionName": "image-description-dev-invoke_ai",
+        "BucketName": "gogoro-hackton-markdown-123",
         "BucketConfigs": [
           {
             "Event": "s3:ObjectCreated:*",
@@ -255,7 +265,7 @@
                 "-",
                 [
                   "dev",
-                  "mdsplit",
+                  "image-description",
                   "custom-resources-lambda"
                 ]
               ]
@@ -276,7 +286,7 @@
                         "s3",
                         "",
                         "",
-                        "gogoro-hackton-replace-image"
+                        "gogoro-hackton-markdown-123"
                       ]
                     ]
                   },
@@ -325,9 +335,9 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/mdsplit/dev/1716083476400-2024-05-19T01:51:16.400Z/custom-resources.zip"
+          "S3Key": "serverless/image-description/dev/1716089413289-2024-05-19T03:30:13.289Z/custom-resources.zip"
         },
-        "FunctionName": "mdsplit-dev-custom-resource-existing-s3",
+        "FunctionName": "image-description-dev-custom-resource-existing-s3",
         "Handler": "s3/handler.handler",
         "MemorySize": 1024,
         "Runtime": "nodejs16.x",
@@ -350,16 +360,16 @@
         "Ref": "ServerlessDeploymentBucket"
       },
       "Export": {
-        "Name": "sls-mdsplit-dev-ServerlessDeploymentBucketName"
+        "Name": "sls-image-description-dev-ServerlessDeploymentBucketName"
       }
     },
-    "MdsplitLambdaFunctionQualifiedArn": {
+    "InvokeUnderscoreaiLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "MdsplitLambdaVersionwsoYyl00PdRPrGYGUqB9IUQusVxuKd05jsnDB89huCA"
+        "Ref": "InvokeUnderscoreaiLambdaVersionF0MjEqIIOFyoywSsVMsrLWV4UqegD3eqf92H5F5jVY"
       },
       "Export": {
-        "Name": "sls-mdsplit-dev-MdsplitLambdaFunctionQualifiedArn"
+        "Name": "sls-image-description-dev-InvokeUnderscoreaiLambdaFunctionQualifiedArn"
       }
     }
   }

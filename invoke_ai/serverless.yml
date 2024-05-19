@@ -1,0 +1,40 @@
+service: image-description
+provider:
+  name: aws
+  runtime: python3.11
+  region: us-west-2
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:GetObject
+        - s3:PutObject
+        - s3:ListBucket
+      Resource:
+        - arn:aws:s3:::gogoro-hackton-markdown-123/*
+        - arn:aws:s3:::gogoro-hackton-replace-image/*
+        - arn:aws:s3:::gogoro-hackton-extracted-image-123/*
+    - Effect: Allow
+      Action:
+        - bedrock:InvokeModel
+        - bedrock:ListFoundationModels
+      Resource: "*"
+
+functions:
+  invoke_ai:
+    handler: invoke_claude3.lambda_handler
+    memorySize: 10240 # 10 GB
+    timeout: 900 # 15 minutes
+    events:
+      - s3:
+          bucket: gogoro-hackton-markdown-123
+          event: s3:ObjectCreated:*
+          rules:
+            - suffix: .md
+          existing: true
+
+plugins:
+  - serverless-python-requirements
+
+custom:
+  pythonRequirements:
+    dockerizePip: true

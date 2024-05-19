@@ -144,7 +144,7 @@ def pdf_extractor(bucket, pdf_key):
                     elif obj["type"] == "table":
                         md_content.write(obj["data"])
                     elif obj["type"] == "image":
-                        md_content.write(image("", f"s3://{img_bucket}/{obj['data']}"))
+                        md_content.write(image("", f"https://{img_bucket}.s3.us-west-2.amazonaws.com/{obj['data']}"))
 
         result_data = md_content.getvalue().encode('utf-8')
         markdown_key = f"{prefix}.md"
