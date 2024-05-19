@@ -7,7 +7,7 @@ session_uuid = str(uuid.uuid4())
 
 
 def test(textbox3, dropdown_value):
-    dropdown_value = dropdown_value.replace("/", "_")
+    dropdown_value = dropdown_value.replace("/", "_").lower()
     url = "https://8sk70wxq58.execute-api.us-west-2.amazonaws.com/default/gogoro-hackathon-IsQuestionRelevantFunction-aTpSWLcaodLz"
 
     data = requests.post(
