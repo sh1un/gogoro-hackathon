@@ -5,9 +5,6 @@ import sys
 import boto3
 from chat_history import get_chat_history, write_messages_to_table
 from dotenv import load_dotenv
-from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain.chains.conversation.base import ConversationChain
-from langchain.chains.retrieval import create_retrieval_chain
 from langchain.prompts import ChatPromptTemplate
 from langchain_aws import ChatBedrock
 from langchain_aws.embeddings import BedrockEmbeddings
@@ -15,6 +12,7 @@ from langchain_core.messages import SystemMessage
 from langchain_core.output_parsers import StrOutputParser
 from loguru import logger
 from opensearchpy import OpenSearch
+from output_util import text_to_json
 from secret import (
     get_opensearch_endpoint,
     get_opensearch_password,
@@ -140,7 +138,7 @@ def lambda_handler(event, context):
     question = payload.get("input", {}).get("question", "What is the meaning of <3?")
     index_name = payload.get("input", {}).get("index", "shiun")
     session_id = payload.get("input", {}).get("session_id", "0")
-    region = event.get("region", "us-east-1")
+    region = event.get("region", "us-west-2")
     bedrock_model_id = event.get(
         "bedrock_model_id", "anthropic.claude-3-sonnet-20240229-v1:0"
     )
@@ -162,13 +160,29 @@ def lambda_handler(event, context):
 
     # LangChain prompt template
     prompt = ChatPromptTemplate.from_template(
-        """If the context is not relevant, please answer the question by using your own knowledge about the topic. If you don't know the answer, just say that you don't know, don't try to make up an answer. don't include harmful content
-    Chat History: {chat_history}
+        """Let me break down my thought process step-by-step when answering your questions about Gogoro's products and services:
 
-    {context}
+Step 1: Analyze the question and identify any missing key information.
+Chat History: {chat_history}
+Question: {input}
+[analyze question and chat history]
 
-    Question: {input}
-    Answer:"""
+Step 2: Check if the provided context contains enough information to answer, combined with my own knowledge about Gogoro.
+{context}
+[check context sufficiency]
+
+Step 3: If needed, politely request any additional information required to comprehensively answer.
+[request additional info]
+
+Step 4: Provide a step-by-step answer utilizing all available information.
+[answer steps]
+
+Final Answer: [result]
+
+If I don't have enough information to answer adequately, I will admit that. I will not make up answers or include any harmful content.
+
+Question: {input}
+Answer:"""
     )
 
     logger.info(
@@ -186,7 +200,7 @@ def lambda_handler(event, context):
     relevant_docs = [hit for hit in results if hit["_score"] >= RAG_THRESHOLD]
 
     if not relevant_docs:
-        answer = "I don't know"
+        answer = "很抱歉,這個問題超出了我的知識範圍或與 Gogoro 產品和服務無關。作為一位 Gogoro 萬事通機器人,我無法為您解答這類問題。不過,如果您有任何關於 Gogoro 智慧電動機車系列、電池交換系統或其他相關產品和服務的疑問,我將竭誠為您解答和提供協助。\n I'm sorry, but this question falls outside of my knowledge or is unrelated to Gogoro's products and services. As the Gogoro product master, I cannot provide an answer to questions of this nature. However, if you have any inquiries regarding Gogoro's Smartscooter electric scooter series, battery swapping system, or other related products and services, I would be more than happy to assist you and provide answers to the best of my abilities."
     else:
         chain = prompt | bedrock_llm | StrOutputParser()
         answer = chain.invoke(
@@ -210,5 +224,6 @@ def lambda_handler(event, context):
     logger.info(
         f"After this invoke is done, now the history has: {get_chat_history(table_name='session_table', session_id='0')}"
     )
+    return_response_body = text_to_json(answer, results)
 
-    return {"statusCode": 200, "body": answer}
+    return {"statusCode": 200, "body": return_response_body}
