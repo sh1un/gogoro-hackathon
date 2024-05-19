@@ -203,7 +203,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/image-description/dev/1716093184826-2024-05-19T04:33:04.826Z/image-description.zip"
+                "S3Key": "serverless/image-description/dev/1716099097984-2024-05-19T06:11:37.984Z/image-description.zip"
               },
               "Handler": "invoke_claude3.lambda_handler",
               "Runtime": "python3.11",
@@ -221,14 +221,14 @@
               "InvokeUnderscoreaiLogGroup"
             ]
           },
-          "InvokeUnderscoreaiLambdaVersionouHGT7XGZdXGHL3NZ7xVeCkNqeZchy2uQQ7rHfeHFkA": {
+          "InvokeUnderscoreaiLambdaVersionloLhkC0zTzEsXUwdFNTLpruahxRuvhyZnlhGvrgOc0": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "InvokeUnderscoreaiLambdaFunction"
               },
-              "CodeSha256": "f+blN3mteBuZ2Av2N47Dqt9v1YwRQCfDS8+kALKdN/E="
+              "CodeSha256": "kegipz0OMN8Mzovg1OUVELV+gNjUwpZvgSQjjHjSO0A="
             }
           },
           "InvokeUnderscoreaiCustomS31": {
@@ -355,7 +355,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/image-description/dev/1716093184826-2024-05-19T04:33:04.826Z/custom-resources.zip"
+                "S3Key": "serverless/image-description/dev/1716099097984-2024-05-19T06:11:37.984Z/custom-resources.zip"
               },
               "FunctionName": "image-description-dev-custom-resource-existing-s3",
               "Handler": "s3/handler.handler",
@@ -386,7 +386,7 @@
           "InvokeUnderscoreaiLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "InvokeUnderscoreaiLambdaVersionouHGT7XGZdXGHL3NZ7xVeCkNqeZchy2uQQ7rHfeHFkA"
+              "Ref": "InvokeUnderscoreaiLambdaVersionloLhkC0zTzEsXUwdFNTLpruahxRuvhyZnlhGvrgOc0"
             },
             "Export": {
               "Name": "sls-image-description-dev-InvokeUnderscoreaiLambdaFunctionQualifiedArn"
@@ -511,7 +511,7 @@
         "memory": 10240,
         "runtime": "python3.11",
         "vpc": {},
-        "versionLogicalId": "InvokeUnderscoreaiLambdaVersionouHGT7XGZdXGHL3NZ7xVeCkNqeZchy2uQQ7rHfeHFkA"
+        "versionLogicalId": "InvokeUnderscoreaiLambdaVersionloLhkC0zTzEsXUwdFNTLpruahxRuvhyZnlhGvrgOc0"
       }
     },
     "configValidationMode": "warn",
@@ -536,7 +536,7 @@
     "artifact": "/Users/rich/Desktop/gogoro-hackathon/invoke_ai/.serverless/image-description.zip"
   },
   "package": {
-    "artifactDirectoryName": "serverless/image-description/dev/1716093184826-2024-05-19T04:33:04.826Z",
+    "artifactDirectoryName": "serverless/image-description/dev/1716099097984-2024-05-19T06:11:37.984Z",
     "artifact": "image-description.zip"
   }
 }
