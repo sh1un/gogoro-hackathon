@@ -174,7 +174,7 @@ Step 2: Check if the provided context contains enough information to answer, com
 Step 3: If needed, politely request any additional information required to comprehensively answer.
 [request additional info]
 
-Step 4: If relevant images are needed, output them using markdown:
+Step 4: For input questions, please add an image in markdown format if possible.
 [output relevant images in markdown]
 
 Step 5: Provide a step-by-step answer in the same language as the question, utilizing all available information. 
