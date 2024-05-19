@@ -1,7 +1,8 @@
 # gogoro-hackathon
 
 ## Data Pipeline
-![Genai-ARCH drawio](https://github.com/sh1un/gogoro-hackathon/assets/85695943/5b730870-9165-4a49-8722-126eabb16a73)
+![datapipeline drawio](https://github.com/sh1un/gogoro-hackathon/assets/85695943/dc77f623-6970-4244-be87-e76cc5b5d04b)
+
 
 ## Gneration
-![generation drawio](https://github.com/sh1un/gogoro-hackathon/assets/85695943/155f1a0b-43d3-456a-ba91-434a61fdc42d)
+![generation drawio (1)](https://github.com/sh1un/gogoro-hackathon/assets/85695943/7af61c34-983f-4249-b502-fe7e267d0afd)
